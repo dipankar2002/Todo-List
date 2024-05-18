@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Page</title>
+</head>
+<body>
+    <div class="outer-div">
+        <h1 class="heading">Create Todo Page</h1>
+        <!--		<div class="input-div"><input type="password" id="token" placeholder="Enter Token"></div>-->
+        <div class="todo-div">
+            <h2 style="margin: 0">TODO</h2>
+            <input type="text" id="todo_title" placeholder="Title for TODO" required>
+            <textarea id="todo_des" placeholder="Description for TODO" required></textarea>
+            <!--			<input type="text" id="todo_status" placeholder="Status (Done / Not Done)" required>-->
+            <select id="todo_status">
+                <option value="done">DONE</option>
+                <option value="not done">Not DONE</option>
+            </select>
+        </div>
+        <div>
+            <button onclick="create_btn()">Create</button>
+            <button onclick="home_btn()">Home Page</button>
+        </div>
+        <div id="main_DIv"></div>
+    </div>
+</body>
+</html>

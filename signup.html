@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up</title>
+    <style>
+        body{
+            text-align: center;
+        }
+        .outer-div{
+            background-color: aqua;
+            margin-top: 50px;
+            text-align: center;
+            display: inline-block;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        .input-div {
+            margin: 20px;
+        }
+        .heading {
+            margin-bottom: 25px;
+            margin-top: 0;
+        }
+        button {
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="outer-div">
+    <h1 class="heading">Sign Up Page</h1>
+    <div class="input1 input-div">ID <input type="text" id="id" required></div>
+    <div class="input-div">NAME <input type="text" id="name" required></div>
+    <div class="input-div">PASS <input type="password" id="pass" required></div>
+    <div>
+        <button onclick="signUp_btn()">Sign Up</button>
+        <button onclick = "window.location.href='http://localhost:3000/login';">Login</button>
+    </div>
+    <div id="main_DIv"></div>
+</div>
+</body>
+<script>
+	function signupResponse(data) {
+		const mainDiv = document.getElementById("main_DIv");
+		mainDiv.innerHTML = "";
+		const id_h2 = document.createElement("h2");
+		id_h2.innerHTML = data.id;
+		const mess_h3 = document.createElement("h3");
+		mess_h3.innerHTML = data.message;
+		mainDiv.appendChild(id_h2);
+		mainDiv.appendChild(mess_h3);
+	}
+	function callbackSignUP(resp) {
+		resp.json().then(signupResponse);
+	}
+	function signUp_btn() {
+		const id = document.getElementById("id").value;
+		const name = document.getElementById("name").value;
+		const pass = document.getElementById("pass").value;
+
+		fetch('http://localhost:3000/user/signup', {
+			method: "POST",
+			body: JSON.stringify({
+				id: id,
+				name: name,
+				pass: pass
+			}),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		}).then(callbackSignUP);
+	}
+</script>
+</html>

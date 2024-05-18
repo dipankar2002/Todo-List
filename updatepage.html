@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Todo Page</title>
+    <style>
+        body{
+            text-align: center;
+        }
+        .outer-div{
+            background-color: aqua;
+            margin-top: 50px;
+            text-align: center;
+            display: inline-block;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        .input-div {
+            margin: 20px;
+        }
+        #token {
+            text-align: center;
+        }
+        .heading {
+            margin-bottom: 25px;
+            margin-top: 0;
+        }
+        button {
+            padding: 10px 20px;
+        }
+        /*#main_DIv {*/
+        /*	margin-top: 30px;*/
+        /*}*/
+        .todo-div {
+            background: bisque;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .todo-div *  {
+            display: block;
+            /*margin-left: auto;*/
+            margin: 20px auto auto auto;
+            text-align: center;
+            /*margin-top: 20px;*/
+        }
+        #todo_des {
+            width: 250px;
+            height: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="outer-div">
+        <h1 class="heading">Update Todo</h1>
+        <div class="todo-div">
+            <h2 style="margin: 0">TODO</h2>
+            <input type="text" id="todo_title" placeholder="Title for TODO" required>
+            <textarea id="todo_des" placeholder="Description for TODO" required></textarea>
+            <!--			<input type="text" id="todo_status" placeholder="Status (Done / Not Done)" required>-->
+            <select id="todo_status">
+                <option value="done">DONE</option>
+                <option value="not done">Not DONE</option>
+            </select>
+        </div>
+        <div>
+            <button onclick="update_btn()">Update</button>
+        </div>
+        <div id="main_DIv"></div>
+    </div>
+</body>
+<script>
+
+    function updateResponse(data) {
+		window.location.href= data.id;
+    }
+    function callback(resp) {
+		resp.json().then(updateResponse);
+    }
+    function update_btn() {
+		const fullUrl = window.location.href;
+		const token = findToken(fullUrl);
+		const todoID = findTodoID(fullUrl);
+		console.log(typeof (todoID));
+		console.log(typeof (parseInt(todoID)));
+		console.log(todoID + " this is found todo id from " + token);
+		const todo_title = document.getElementById("todo_title").value;
+		const todo_des = document.getElementById("todo_des").value;
+		const todo_status = document.getElementById("todo_status").value;
+
+        // const token = findTokenFromTodoID(todoID);
+
+		fetch('http://localhost:3000/user/todo-update', {
+			method: "PUT",
+			body: JSON.stringify({
+				id: parseInt(todoID),
+				title: todo_title,
+				des: todo_des,
+				status: todo_status,
+				token: token
+			}),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		}).then(callback);
+    }
+	function findTodoID(url) {
+		// return url.slice(-4);
+        return url.substring(41, url.length);
+	}
+	function findToken(url) {
+		let result = url.substring(34);
+		return result.substring(0, result.length - 5);
+    }
+</script>
+</html>

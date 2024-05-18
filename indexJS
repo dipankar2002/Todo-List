@@ -1,0 +1,235 @@
+const express = require('express');
+const bodyParser = require('body-parser')
+const fs = require('fs');
+const cors = require('cors');
+
+const app = express();
+const port = 3000;
+app.use(bodyParser.json());
+app.use(cors());
+
+// user routes used functions
+function userReadFile() {
+    let List = fs.readFileSync('userData.json', 'utf8');
+    const readData = JSON.parse(List);
+    return readData;
+}
+function userIdCheck(obj) {
+    const list = userReadFile();
+    let flag = false;
+    if(list.length >= 1) {
+        for(let i = 0; i < list.length; i++) {
+            if(list[i].id === obj.id) {
+                flag = true;
+                break;
+            }
+        }
+        return flag;
+    }
+    return flag;
+}
+function userCheckId(id,pass) {
+    let flag = false;
+    const list = userReadFile();
+    for(let i = 0; i < list.length; i++) {
+        if(list[i].id === id && list[i].pass === pass) {
+            flag = true;
+            break;
+        }
+    }
+    console.log(flag);
+    return flag;
+}
+function addTodoInTheUserList(obj,id) {
+    const list = userReadFile();
+    let index = null;
+    for(let i = 0; i < list.length; i++) {
+        if(list[i].id === id) {
+            index = i;
+            break;
+        }
+    }
+    list[index].todo.push(obj);
+    let newDATA = JSON.stringify(list);
+    fs.writeFile('userData.json', newDATA, (err) => {
+        if (err) throw err;
+        console.log("todo data stored successfully");
+    })
+}
+function userIndex(list,id) {
+    let index = null;
+    for(let i = 0; i < list.length; i++) {
+        if(list[i].id === id) {
+            index = i;
+            break;
+        }
+    }
+    return index;
+}
+function updateTodoList(i,k,obj) {
+    let list = userReadFile();
+    list[i].todo[k] = obj;
+    return list;
+}
+function findTheIndexOfTodoID(obj) {
+    let list = userReadFile();
+    let index1 = null;
+    let index2 = null;
+    for(let i = 0; i < list.length; i++) {
+        index1 = i;
+        for(let k = 0; k < list[i].todo.length; k++) {
+            if(list[i].todo[k].todoID === obj.todoID) {
+                index2 = k;
+                let newlist = updateTodoList(index1,index2,obj);
+                return newlist;
+            }
+        }
+    }
+    return list;
+}
+function deleteTodoList(i,k) {
+    let list = userReadFile();
+    // console.log("i index : " + i + " K index: " + k);
+    if (k > -1) {
+        // only splice array when item is found
+        list[i].todo.splice(k, 1); // 2nd parameter means remove one item only
+    }
+    return list;
+}
+function findTheIndexToDeleteTodoList(id) {
+    let list = userReadFile();
+    let index1 = null;
+    let index2 = null;
+    for(let i = 0; i < list.length; i++) {
+        index1 = i;
+        for(let k = 0; k < list[i].todo.length; k++) {
+            if(list[i].todo[k].todoID === id) {
+                index2 = k;
+                // console.log("i index : " + i + " K index: " + k);
+                let newlist = deleteTodoList(index1,index2);
+                return newlist;
+            }
+        }
+    }
+    return list;
+}
+
+const userAuth = (req,res,next) => {
+    const id = "@" + req.body.id;
+    const pass = req.body.pass;
+
+    const authRes = userCheckId(id,pass);
+    if(authRes) {
+        next();
+    } else {
+        res.status(401).json({id: id,message: "user login fail!!"});
+    }
+}
+
+// user routes for TODO list
+app.delete('/user/todo-delete/:id', userAuth, (req,res) => {
+    const todoID = "#" + req.params.id;
+    const newList = findTheIndexToDeleteTodoList(todoID);
+    // console.log(todoID);
+    let newDATA = JSON.stringify(newList);
+    fs.writeFile('userData.json', newDATA, (err) => {
+        if (err) throw err;
+        console.log('JSON data delete successfully');
+    })
+    res.send(todoID + " todo delete Successful");
+})
+app.put('/user/todo-update/:id', userAuth, (req,res) => {
+    // const todoID = "#" + req.query.todoID;
+    const todoID = "#" + req.params.id;
+    const title = req.body.title;
+    const des = req.body.des;
+    const status = req.body.status;
+    console.log(todoID);
+    const objNew = {
+        todoID: todoID,
+        title: title,
+        des: des,
+        status: status
+    }
+    const newList = findTheIndexOfTodoID(objNew);
+    let newDATA = JSON.stringify(newList);
+    fs.writeFile('userData.json', newDATA, (err) => {
+        if (err) throw err;
+        console.log('JSON data update successfully');
+    })
+    res.status(200).send(objNew.todoID + " todo update Successful");
+})
+app.post('/user/todo-list', userAuth, (req,res) => {
+    const id = "@" + req.body.id;
+    const list = userReadFile();
+    const index = userIndex(list,id);
+    res.json(list[index].todo);
+})
+app.post('/user/todo-create', userAuth, (req,res) => {
+    const title = req.body.title;
+    const des = req.body.des;
+    const status = req.body.status;
+    const id = "@" + req.body.id;
+
+
+    const obj = {
+        todoID: "#" + Math.floor(Math.random()*10000),
+        title: title,
+        des: des,
+        status: status
+    }
+    addTodoInTheUserList(obj,id);
+    res.status(200).json({id: id,message: title + "Todo added to Todo-List"});
+})
+app.post('/user/login', userAuth, (req,res) => {
+    // res.status(200).sendFile(__dirname + "/homepage.html");
+    const id = "@" + req.body.id;
+    res.status(200).json({id: id,message: "user Login Successful"});
+})
+app.post('/user/signup', (req,res) => {
+    const id = req.body.id;
+    const name = req.body.name;
+    const pass = req.body.pass;
+
+    const obj = {
+        id: "@" + id.toLowerCase(),
+        name: name,
+        pass: pass,
+        todo: [],
+    }
+    const checkUser = userIdCheck(obj);
+    if(checkUser) {
+        res.status(401).json({id: obj.id,message: "user already Exists!! login pls"});
+    } else {
+        const list = userReadFile();
+        list.push(obj);
+        let newDATA = JSON.stringify(list);
+        fs.writeFile('userData.json', newDATA, (err) => {
+            if (err) throw err;
+            console.log('JSON data stored successfully');
+        })
+        res.status(200).json({id: obj.id,message: "user signup Successful"});
+    }
+})
+
+app.get('/todo-list', (req,res) => {
+    res.sendFile(__dirname + "/homepage.html");
+})
+app.get('/todo-create', (req,res) => {
+    res.sendFile(__dirname + "/todoCreate.html");
+})
+app.get('/login', (req,res) => {
+    res.sendFile(__dirname + "/login.html");
+})
+app.get('/signup', (req,res) => {
+    res.sendFile(__dirname + "/signup.html");
+})
+
+app.listen(port, () => {
+    console.log(`Server start`);
+})
+
+
+
+
+[{"id":"@dip074","name":"Dipankar","pass":"han123","todo":[{"todoID":"#7451","title":"code Todo List","des":"the backend code for the todo list done","status":"done"},{"todoID":"#5571","title":"learn DBMS","des":"study DBMS for the sem exam","status":"not done"},{"todoID":"#5942","title":"read Gita","des":"read the Bhagavat Gita 5 page","status":"done"},{"todoID":"#9429","title":"Play Valorant","des":"Play Valorant at night 11:30pm","status":"Not Done"},{"todoID":"#3725","title":"Play Table Tennis","des":"Play table tennis at night","status":"Not Done"}]},{"id":"@ank075","name":"Ankan","pass":"ank123","todo":[{"todoID":"#5636","title":"play valorant","des":"play valorant at night","status":"not done"}]},{"id":"@dee017","name":"Deeptanshu","pass":"dee123","todo":[]}]

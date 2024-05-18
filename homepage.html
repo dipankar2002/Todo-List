@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Home Page</title>
+	<style>
+        body{
+            text-align: center;
+			/*background: black;*/
+        }
+        .outer-div{
+            background-color: aqua;
+            margin-top: 50px;
+            text-align: center;
+            display: inline-block;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        .input-div {
+            margin: 20px;
+        }
+		#token {
+			text-align: center;
+		}
+		#seeToken_btn {
+			padding: 1px 3px;
+		}
+        .heading {
+            margin-bottom: 25px;
+            margin-top: 0;
+        }
+        button {
+            padding: 10px 20px;
+        }
+		#main_DIv {
+			margin-top: 30px;
+			margin-bottom: 30px;
+		}
+		.headers {
+			display: flex;
+			justify-content: space-between;
+			width: 95%;
+			height: 50px;
+			margin-right: auto;
+			margin-left: auto;
+
+			/*background: bisque;*/
+		}
+		img {
+			width: 50px;
+			height: 50px;
+			border-radius: 50%;
+		}
+		.headers-left {
+			width: 170px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			/*background: bisque;*/
+		}
+		#id_name {
+			font-family: Arial,serif;
+			font-size: 26px;
+			font-weight: bold;
+		}
+		.create_div {
+			/*background: maroon;*/
+			display: flex;
+			justify-content: space-between;
+			border-radius: 5px;
+		}
+		#todo_title {
+			width: 130px;
+			text-align: center;
+			border: none;
+			border-right: 2px solid rgba(137, 137, 137, 0.5);
+			border-radius: 5px 0 0 5px;
+			padding: 0 7px;
+		}
+		#todo_des {
+			/*width: 130px;*/
+			flex: 2;
+			resize: none;
+			border: none;
+			border-right: 2px solid rgba(137, 137, 137, 0.5);
+			padding: 5px 7px 0 7px;
+		}
+		#todo_status {
+			font-size: 12px;
+			text-align: center;
+			width: 60px;
+			border: none;
+			border-radius: 0 5px 5px 0;
+			margin-right: 5px;
+		}
+		.create_div button {
+			background: #0ab0ae;
+			color: white;
+			font-size: 16px;
+			font-weight: bold;
+			border: none;
+			border-radius: 5px;
+		}
+	</style>
+</head>
+<body>
+	<div class="headers">
+		<div class="headers-left">
+			<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjvH7XRQXTNAMqRZ-7LzzhXlhN2FaNdAqfR3ZD7Gjwhjwomp2EKU-d7P66poBH7gED0Z8&usqp=CAU" alt="profile image">
+			<h2 id="id_name"></h2>
+		</div>
+		<button onclick="logout_btn()" class="logout_btn">Logout</button>
+	</div>
+	<div class="outer-div">
+		<h1 class="heading">Home Page</h1>
+<!--		<div class="input-div">-->
+<!--			<input type="password" id="token" placeholder="Enter Token">-->
+<!--			<button id="seeToken_btn" onclick = "window.location.href='http://localhost:3000/see-token';">See Token</button>-->
+<!--		</div>-->
+		<div class="create_div">
+			<input type="text" id="todo_title" placeholder="Title for TODO" required>
+			<textarea id="todo_des" placeholder="Description for TODO" required></textarea>
+			<select id="todo_status">
+				<option value="done">DONE</option>
+				<option value="not done">Not DONE</option>
+			</select>
+			<button onclick="create_btn()">Create</button>
+		</div>
+		<div id="tokenCheck"></div>
+		<div id="main_DIv"></div>
+	</div>
+</body>
+<script>
+	function logout_btn() {
+		// window.location.href='http://localhost:3000/signup';
+		window.location.replace('http://localhost:3000/login');
+		return false;
+	}
+
+	function todoEdit_btn(id) {
+		console.log(id);
+		const fullUrl = window.location.href;
+		const token = findToken(fullUrl);
+		const route = "http://localhost:3000/todo-update/" + token + "/" + id;
+		window.location.href=route;
+	}
+
+	function deleteResponse(data) {
+		window.location.href= data.id;
+	}
+	function callbackForDel(resp) {
+		resp.json().then(deleteResponse);
+	}
+	function todoDel_btn(id) {
+		console.log(id);
+		const fullUrl = window.location.href;
+		const token = findToken(fullUrl);
+		const todoId = id;
+		fetch('http://localhost:3000/user/todo-delete', {
+			method: "DELETE",
+			body: JSON.stringify({
+				token: token,
+				id : todoId
+			}),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		}).then(callbackForDel);
+	}
+	// function create_btn() {
+	// 	const fullUrl = window.location.href;
+	// 	const token = findToken(fullUrl);
+	// 	const url = "http://localhost:3000/todo-create/" + token;
+	// 	window.location.href= url;
+	// }
+	function createResponse(data) {
+		window.location.href= data.id;
+	}
+	function callbackForCreate(resp) {
+		resp.json().then(createResponse);
+	}
+	function create_btn() {
+		const fullUrl = window.location.href;
+		const token = findToken(fullUrl);
+
+		const todo_title = document.getElementById("todo_title").value;
+		const todo_des = document.getElementById("todo_des").value;
+		const todo_status = document.getElementById("todo_status").value;
+
+		fetch('http://localhost:3000/user/todo-create', {
+			method: "POST",
+			body: JSON.stringify({
+				token: token,
+				title: todo_title,
+				des: todo_des,
+				status: todo_status
+			}),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		}).then(callbackForCreate);
+	}
+
+	function todoListResponse(dataMain) {
+		const data = dataMain.todo;
+
+		const profileName = document.getElementById("id_name");
+		profileName.innerHTML = dataMain.name;
+
+		const main_Div = document.getElementById("main_DIv");
+		main_Div.innerHTML = "";
+		const table = document.createElement("table");
+		// table.style.display = "flex";
+		
+		const tHead = document.createElement("tr");
+		tHead.style.border = "2px solid white";
+		const tdH1 = document.createElement("th");
+		tdH1.innerHTML = "ID";
+		tdH1.style.border = "2px solid white";
+		tdH1.style.padding = "10px";
+		const tdH2 = document.createElement("th");
+		tdH2.innerHTML = "TITLE";
+		tdH2.style.border = "2px solid white";
+		tdH2.style.padding = "10px";
+		const tdH3 = document.createElement("th");
+		tdH3.innerHTML = "DESCRIPTION";
+		tdH3.style.border = "2px solid white";
+		tdH3.style.padding = "10px";
+		const tdH4 = document.createElement("th");
+		tdH4.innerHTML = "STATUS";
+		tdH4.style.border = "2px solid white";
+		tdH4.style.padding = "10px";
+		const tdH5 = document.createElement("th");
+		tdH5.innerHTML = "DELETE";
+		tdH5.style.border = "2px solid white";
+		tdH5.style.padding = "10px";
+		const tdH6 = document.createElement("th");
+		tdH6.innerHTML = "EDIT";
+		tdH6.style.border = "2px solid white";
+		tdH6.style.padding = "10px";
+		tHead.appendChild(tdH1);
+		tHead.appendChild(tdH2);
+		tHead.appendChild(tdH3);
+		tHead.appendChild(tdH4);
+		tHead.appendChild(tdH5);
+		tHead.appendChild(tdH6);
+		table.appendChild(tHead);
+		
+		for(let i = 0; i < data.length; i++) {
+			const tr = document.createElement("tr");
+			tr.style.border = "2px solid white";
+			const td1 = document.createElement("td");
+			td1.innerHTML = data[i].todoID;
+			td1.style.border = "2px solid white";
+			td1.style.padding = "10px";
+			const td2 = document.createElement("td");
+			td2.innerHTML = data[i].title;
+			td2.style.border = "2px solid white";
+			td2.style.padding = "10px";
+			const td3 = document.createElement("td");
+			td3.innerHTML = data[i].des;
+			td3.style.border = "2px solid white";
+			td3.style.padding = "10px";
+			const td4 = document.createElement("td");
+			td4.innerHTML = data[i].status;
+			td4.style.border = "2px solid white";
+			td4.style.padding = "10px";
+			const td5 = document.createElement("td");
+			const td5_btn = document.createElement("button");
+			td5_btn.innerHTML = "Delete";
+			td5_btn.addEventListener("click", () => { // delete function EventListener
+				todoDel_btn(data[i].todoID);
+			});
+			td5.appendChild(td5_btn);
+
+			const td6 = document.createElement("td");
+			const td6_btn = document.createElement("button");
+			td6_btn.innerHTML = "Edit";
+			td6_btn.addEventListener("click", () => { // Edit function EventListener
+				todoEdit_btn(data[i].todoID);
+			});
+			td6.appendChild(td6_btn);
+			// td4.style.border = "2px solid white";
+			// td4.style.padding = "10px";
+			
+			tr.appendChild(td1);
+			tr.appendChild(td2);
+			tr.appendChild(td3);
+			tr.appendChild(td4);
+			tr.appendChild(td5);
+			tr.appendChild(td6);
+			table.appendChild(tr);
+		}
+		main_Div.appendChild(table);
+	}
+	function callback(resp) {
+		resp.json().then(todoListResponse);
+	}
+	todoList_btn();
+	function todoList_btn() {
+		// const token = document.getElementById("token").value;
+		const fullUrl = window.location.href;
+		const token = findToken(fullUrl);
+
+		fetch('http://localhost:3000/user/todo-list', {
+			method: "POST",
+			body: JSON.stringify({
+				token: token
+			}),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		}).then(callback);
+	}
+	function findToken(url) {
+		return url.slice(-6);
+	}
+</script>
+</html>

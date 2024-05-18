@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        body{
+            text-align: center;
+        }
+        .outer-div{
+            background-color: aqua;
+            margin-top: 50px;
+            text-align: center;
+            display: inline-block;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        .input-div {
+            margin: 20px;
+        }
+        .heading {
+            margin-bottom: 25px;
+            margin-top: 0;
+        }
+        button {
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="outer-div">
+        <h1 class="heading">Login Page</h1>
+        <div class="input1 input-div">ID <input type="text" id="id"></div>
+        <div class="input-div">PASS <input type="password" id="pass"></div>
+        <div>
+            <button onclick = "window.location.href='http://localhost:3000/signup';">Sign Up</button>
+            <button onclick="login_btn()">Login</button>
+        </div>
+        <div id="main_DIv"></div>
+    </div>
+</body>
+<script>
+    function loginResponse(data) {
+        // const mainDiv = document.getElementById("main_DIv");
+        // mainDiv.innerHTML = "";
+        // const id_h2 = document.createElement("h2");
+        // id_h2.innerHTML = data.id;
+        // const mess_h3 = document.createElement("h3");
+        // mess_h3.innerHTML = data.message;
+        // mainDiv.appendChild(id_h2);
+        // mainDiv.appendChild(mess_h3);
+		window.location.href= data.id;
+    }
+    function callback(resp) {
+        resp.json().then(loginResponse)
+    }
+	function login_btn() {
+        const id = document.getElementById("id").value;
+        const pass = document.getElementById("pass").value;
+        
+        fetch('http://localhost:3000/user/login', {
+            method: "POST",
+            body: JSON.stringify({
+                id: id,
+                pass: pass
+            }),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).then(callback);
+	}
+</script>
+</html>
